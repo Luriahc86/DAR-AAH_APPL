@@ -28,7 +28,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, additionalData?: any) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, additionalData?: any) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -112,19 +112,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
     
     if (data.user) {
+      // Prepare profile data
+      const profileData: any = {
+        id: data.user.id,
+        full_name: fullName,
+        email: email,
+        role: additionalData?.role || 'public',
+      };
+
+      // Add role-specific data
+      if (additionalData) {
+        if (additionalData.phone) profileData.phone = additionalData.phone;
+        if (additionalData.bloodType) profileData.blood_type = additionalData.bloodType;
+        if (additionalData.dateOfBirth) profileData.date_of_birth = additionalData.dateOfBirth;
+        if (additionalData.gender) profileData.gender = additionalData.gender;
+        if (additionalData.address) profileData.address = additionalData.address;
+      }
+
       // Create profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert([
-          {
-            id: data.user.id,
-            full_name: fullName,
-            email: email,
-            role: 'public',
-          },
-        ]);
+        .insert([profileData]);
       
       if (profileError) throw profileError;
+
+      // If hospital role, create hospital record
+      if (additionalData?.role === 'hospital' && additionalData.hospitalName) {
+        const { error: hospitalError } = await supabase
+          .from('hospitals')
+          .insert([{
+            name: additionalData.hospitalName,
+            address: additionalData.hospitalAddress || '',
+            phone: additionalData.phone || '',
+            email: email,
+            contact_person: fullName,
+          }]);
+        
+        if (hospitalError) console.error('Error creating hospital record:', hospitalError);
+      }
     }
   };
 

@@ -6,6 +6,8 @@ import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import DashboardContent from './components/dashboard/DashboardContent';
 import BloodStockContent from './components/blood-stock/BloodStockContent';
+import DonationsContent from './components/donations/DonationsContent';
+import RequestsContent from './components/requests/RequestsContent';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 
 const MainApp: React.FC = () => {
@@ -37,9 +39,9 @@ const MainApp: React.FC = () => {
       case 'blood-stock':
         return <BloodStockContent />;
       case 'donations':
-        return <div>Donations Content</div>;
+        return <DonationsContent />;
       case 'requests':
-        return <div>Requests Content</div>;
+        return <RequestsContent />;
       case 'profile':
         return <div>Profile Content</div>;
       case 'admin':

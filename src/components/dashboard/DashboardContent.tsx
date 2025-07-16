@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import StatsCards from './StatsCards';
 import BloodStockCard from './BloodStockCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import DonorRegistrationForm from '../donor/DonorRegistrationForm';
+import BloodRequestForm from '../requests/BloodRequestForm';
+import Notification from '../ui/Notification';
 
 interface DashboardStats {
   totalDonors: number;
@@ -28,6 +32,17 @@ const DashboardContent: React.FC = () => {
   });
   const [bloodStocks, setBloodStocks] = useState<BloodStock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDonorModal, setShowDonorModal] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'info' | 'warning';
+    message: string;
+    isVisible: boolean;
+  }>({
+    type: 'success',
+    message: '',
+    isVisible: false,
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -86,6 +101,20 @@ const DashboardContent: React.FC = () => {
     }
   };
 
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    setNotification({ type, message, isVisible: true });
+  };
+
+  const handleDonorSuccess = () => {
+    showNotification('success', 'Pendaftaran donor berhasil! Kami akan menghubungi Anda untuk konfirmasi.');
+    fetchDashboardData(); // Refresh data
+  };
+
+  const handleRequestSuccess = () => {
+    showNotification('success', 'Permintaan darah berhasil dikirim! Tim kami akan segera menindaklanjuti.');
+    fetchDashboardData(); // Refresh data
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -96,6 +125,13 @@ const DashboardContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <Notification
+        type={notification.type}
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+      />
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">
           Dashboard
@@ -103,6 +139,31 @@ const DashboardContent: React.FC = () => {
         <div className="text-sm text-gray-500">
           Selamat datang, {profile?.full_name}
         </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button
+          onClick={() => setShowDonorModal(true)}
+          className="p-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl shadow-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105"
+        >
+          <div className="flex items-center justify-center mb-3">
+            <Plus className="h-8 w-8" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Daftar Sebagai Donor</h3>
+          <p className="text-red-100 text-sm">Bergabunglah dengan komunitas pendonor darah</p>
+        </button>
+
+        <button
+          onClick={() => setShowRequestModal(true)}
+          className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105"
+        >
+          <div className="flex items-center justify-center mb-3">
+            <Plus className="h-8 w-8" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Minta Darah</h3>
+          <p className="text-blue-100 text-sm">Ajukan permintaan darah untuk pasien</p>
+        </button>
       </div>
 
       <StatsCards
@@ -155,6 +216,19 @@ const DashboardContent: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <DonorRegistrationForm
+        isOpen={showDonorModal}
+        onClose={() => setShowDonorModal(false)}
+        onSuccess={handleDonorSuccess}
+      />
+
+      <BloodRequestForm
+        isOpen={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+        onSuccess={handleRequestSuccess}
+      />
     </div>
   );
 };
