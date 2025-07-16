@@ -8,6 +8,8 @@ import DashboardContent from './components/dashboard/DashboardContent';
 import BloodStockContent from './components/blood-stock/BloodStockContent';
 import DonationsContent from './components/donations/DonationsContent';
 import RequestsContent from './components/requests/RequestsContent';
+import ProfileContent from './components/profile/ProfileContent';
+import AdminContent from './components/admin/AdminContent';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 
 const MainApp: React.FC = () => {
@@ -43,9 +45,9 @@ const MainApp: React.FC = () => {
       case 'requests':
         return <RequestsContent />;
       case 'profile':
-        return <div>Profile Content</div>;
+        return <ProfileContent />;
       case 'admin':
-        return <div>Admin Panel Content</div>;
+        return <AdminContent />;
       default:
         return <DashboardContent />;
     }
